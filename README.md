@@ -1,5 +1,5 @@
 # Demo
-[Here's a link to the demo]('http://al-ppsa.github.io/chart-playground')
+[Here's a link to the demo](http://al-ppsa.github.io/chart-playground)
 
 # Testing Writeup
 My criteria for testing:
