@@ -1,7 +1,7 @@
 import React from 'react';
 
 import Pie from '@visx/shape/lib/shapes/Pie';
-import { exoplanets, letterFrequency } from '@visx/mock-data';
+import { letterFrequency } from '@visx/mock-data';
 import { Group } from '@visx/group';
 
 export interface VisxProps {
@@ -11,11 +11,11 @@ export interface VisxProps {
     thickness: number;
 }
 export const VisxTest = (props: VisxProps) => {
-    const [showLabels, setShowLabels] = React.useState<boolean>(false);
     const { width, height, radius, thickness } = props;
-    console.log(exoplanets);
-    console.log(letterFrequency);
+    const [showLabels, setShowLabels] = React.useState<boolean>(false);
 
+    // when rendering colors this way (vs, say, a static string "rgb(0, 0, 255)") I can't seem to get 
+    // the full value. Everythign is very dull...unsure if there's some svg quirk I don't know about
     const getColor = (data: {letter: string, frequency: number}) => {
         const freqMod = data.frequency * 10;
         const r = 150;

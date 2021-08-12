@@ -10,7 +10,7 @@ const radius: number = 200;
 const thickness: number = 40;
 
 function App() {
-  const [displayingVisx, setDisplayingVisx] = useState<boolean>(true);
+  const [displayingVisx, setDisplayingVisx] = useState<boolean>(false);
   return (
     <div className="App">
       <header className="App-header">
@@ -21,8 +21,13 @@ function App() {
             width={width}
             radius={radius}
             thickness={thickness}
-        />
-        : <NivoTest />
+          />
+        : <NivoTest 
+            height={height}
+            width={width}
+            radius={radius}
+            thickness={thickness}
+          />
       }
       </header>
     </div>
