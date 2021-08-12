@@ -10,7 +10,7 @@ const radius: number = 200;
 const thickness: number = 40;
 
 function App() {
-  const [displayingVisx, setDisplayingVisx] = useState<boolean>(false);
+  const [displayingVisx, setDisplayingVisx] = useState<boolean>(true);
   return (
     <div className="App">
       <header className="App-header">

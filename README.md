@@ -1,70 +1,46 @@
-# Getting Started with Create React App
+# Demo
+[Here's a link to the demo]('http://al-ppsa.github.io/chart-playground')
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Testing Writeup
+My criteria for testing:
+- build a (donut) chart using just the docs/provided examples
+- add labels not directly touching the arcs they correspond to
+- specify arc colors based on the data itself
 
-## Available Scripts
+I chose these criteria arbitrarily based on our one known use case, as well as what seem like commmon features in a chart.
 
-In the project directory, you can run:
+For now, I've left out animation in favor of getting this info to the team, but that's my next focus (an update on this - contrary to what I thought yesterday, visx has a bunch of examples using react-spring, so that integration should be fairly trivial)
 
-### `npm start`
+Anyway, here's what I found:
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Building the chart
+### Visx
+As expected, it took significantly longer to put this together with visx. Largely this was due to my lack of knowledge
+ with svg (not realizing I needed a `<g>` element wrapping the chart - oops), but it's still true that this was a
+ more manual setup. There's a TON of flexibility, and the data you pass to the chart doesn't need to be in any
+  particular format; you can define accessor functions to get various attributes as desired.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+Getting donut behavior was super easy: just define an `outerRadius` and `innerRadius` in units and you get what you'd expect.
 
-### `npm test`
+### Nivo
+This one came together much more quickly. I just needed to define a `data` array where each item had an `id` and a `value` property. The only other thing needed for the chart to render is a containing element with a defined `height` and `width`. What you get is a chart with basic (hover) animations, random colors, and labels (both on the arcs and coming from them; these are taken from the `id` and `label` attributes on the data, the latter of which may not exist).
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Donut behavior was slightly more involved. There's no `outerRadius` attribute, at all. The chart fills the container it's in, and you can customize the size with `margin` (basically padding the container). There is an `innerRadius` property which accepts a ratio for the cutout, so I needed to do a bit of math to get the correct thickness.
 
-### `npm run build`
+## Labels
+### Visx
+Again, since we're basically working directly in svg, I was limited by my ability/desire to build a decent svg document.
+We're provided a `centroid` function which passes you the datum used to render the arc, as well as coordinates to the center of the arc; the result of the `centroid` function gets rendered. Rendering an in-arc label was easy enough, but I
+needed to do some math to get the offset-from-donut effect. I also added my own custom lines, but it'll take some work to get those to look decent.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Nivo
+Comes with in-arc and outside-arc labels by default. The labels come from the data automatically (`id` and `label` attributes) but can be changed by passing in accessor functions. The library handles the "label links" (this is what they call the lines extending from the graph to the labels) by itself, which was a nice surprise. You can customize the color of the links/text via props.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Color
+To be totally honest, I struggled with color for both of these.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Visx
+As with everything else, color is manually specified wherever you create your svg elements. For whatever reason, I'm having trouble getting full values when generating dynamic colors; the colors seem faded and washed out. If I specify a manual value like "rgb(255, 0, 0)" I have no problems. Going to continue looking into this.
 
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### Nivo
+I could not get _custom_ colors working. We need to use the `colors` property to change colors manually, but it was...more difficult than I expected. First, they're using the special `Omit` interface to _strip the `color` attribute from the data_, meaning you can't just define `color` on your dataset. That kinda sucks. I was able to write a hacky workaround, which gave me the colors I was looking for, but also introduced some very odd animation behavior and a slew of console errors. More testing needed here as well

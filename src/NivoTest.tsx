@@ -28,7 +28,7 @@ export const NivoTest = (props: NivoProps) => {
     return (
         <>
             <h1>Nivo Test</h1>
-            <p>minimal example of donut chart in visx </p>
+            <p>minimal example of donut chart in nivo </p>
             <div style={{ height: height, width: width }}>
                 <Pie
                     height={height}
