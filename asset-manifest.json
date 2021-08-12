@@ -1,0 +1,22 @@
+{
+  "files": {
+    "main.css": "/chart-playground/static/css/main.a617e044.chunk.css",
+    "main.js": "/chart-playground/static/js/main.9271c638.chunk.js",
+    "main.js.map": "/chart-playground/static/js/main.9271c638.chunk.js.map",
+    "runtime-main.js": "/chart-playground/static/js/runtime-main.b6d634e6.js",
+    "runtime-main.js.map": "/chart-playground/static/js/runtime-main.b6d634e6.js.map",
+    "static/js/2.9f9e9f3d.chunk.js": "/chart-playground/static/js/2.9f9e9f3d.chunk.js",
+    "static/js/2.9f9e9f3d.chunk.js.map": "/chart-playground/static/js/2.9f9e9f3d.chunk.js.map",
+    "static/js/3.17e12aea.chunk.js": "/chart-playground/static/js/3.17e12aea.chunk.js",
+    "static/js/3.17e12aea.chunk.js.map": "/chart-playground/static/js/3.17e12aea.chunk.js.map",
+    "index.html": "/chart-playground/index.html",
+    "static/css/main.a617e044.chunk.css.map": "/chart-playground/static/css/main.a617e044.chunk.css.map",
+    "static/js/2.9f9e9f3d.chunk.js.LICENSE.txt": "/chart-playground/static/js/2.9f9e9f3d.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.b6d634e6.js",
+    "static/js/2.9f9e9f3d.chunk.js",
+    "static/css/main.a617e044.chunk.css",
+    "static/js/main.9271c638.chunk.js"
+  ]
+}
