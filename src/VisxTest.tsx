@@ -1,0 +1,77 @@
+import React from 'react';
+
+import Pie from '@visx/shape/lib/shapes/Pie';
+import { exoplanets, letterFrequency } from '@visx/mock-data';
+import { Group } from '@visx/group';
+
+export interface VisxProps {
+    width: number;
+    height: number;
+    radius: number;
+    thickness: number;
+}
+export const VisxTest = (props: VisxProps) => {
+    const [showLabels, setShowLabels] = React.useState<boolean>(false);
+    const { width, height, radius, thickness } = props;
+    console.log(exoplanets);
+    console.log(letterFrequency);
+
+    const getColor = (data: {letter: string, frequency: number}) => {
+        const freqMod = data.frequency * 10;
+        const r = 150;
+        const g = 160; 
+        const b = 255;
+        return `rgba(${r}, ${g}, ${b}, ${1 - (1 - freqMod)})`;
+    }
+
+    const getCentroid = (data: {letter: string, frequency: number}, coords: [x: number, y: number]) => {
+        const [x, y] = coords;
+        const [cX, cY] = [0, 0];
+        const [diffX, diffY] = [x-cX, y-cY];
+        const scale = 0.4;
+        const [adjX, adjY] = [x + diffX*scale, y + diffY*scale];
+
+        return (
+            <g>
+                <text 
+                    x={adjX} 
+                    y={adjY} 
+                    textAnchor="middle"
+                >
+                    {data.letter}
+                </text>
+                <line
+                    x1={x}
+                    x2={adjX}
+                    y1={y}
+                    y2={adjY}
+                    stroke="black"
+                />
+            </g>
+        )
+    }
+
+    return (
+        <>
+            <h1>Visx Test</h1>
+            <p>minimal example of donut chart in visx </p>
+            <svg height={height} width={width}>
+                <Group>
+                    <text x={width/2} y={height/2} fill="white" textAnchor="middle">Donut Chart</text>
+                    <Pie
+                        top={height / 2}
+                        left={width / 2}
+                        data={letterFrequency}
+                        outerRadius={radius}
+                        innerRadius={radius - thickness}
+                        pieValue={l => l.frequency}
+                        //endAngle={Math.PI * 3 / 2}
+                        fill={s => getColor(s.data)}
+                        centroid={showLabels ? (xy, arc) => getCentroid(arc.data, xy) : undefined}
+                    />
+                </Group>
+            </svg>
+            <button onClick={() => setShowLabels(!showLabels)}>Toggle Labels</button>
+        </>
+    )
+}
