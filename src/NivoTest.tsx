@@ -42,7 +42,6 @@ export const NivoTest = (props: NivoProps) => {
                     arcLinkLabelsTextColor={'#fff'}
                     // christ this is an awful statement
                     //colors={datum => data.find((d) => d.id = datum.id.toString())?.color || 'blue'}
-                
                 />
 
             </div>

@@ -18,10 +18,10 @@ export const VisxTest = (props: VisxProps) => {
     // the full value. Everythign is very dull...unsure if there's some svg quirk I don't know about
     const getColor = (data: {letter: string, frequency: number}) => {
         const freqMod = data.frequency * 10;
-        const r = 150;
-        const g = 160; 
-        const b = 255;
-        return `rgba(${r}, ${g}, ${b}, ${1 - (1 - freqMod)})`;
+        const r = Math.random() * 255;
+        const g = Math.random() * 255; 
+        const b = Math.random() * 255;
+        return `rgb(${r}, ${g}, ${b})`
     }
 
     const getCentroid = (data: {letter: string, frequency: number}, coords: [x: number, y: number]) => {
