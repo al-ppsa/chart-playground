@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { VisxTest } from './VisxTest';
 import { NivoTest } from './NivoTest';
 import {DonutChart} from './DonutChart';
-import {StackedStemLabel} from './PieChart';
+import {StackedStemLabel} from './stackedStemLabel';
 import {exoplanets} from '@visx/mock-data';
 import './App.css';
 import { pointAlongLine, radiansToDegrees } from './utils';
