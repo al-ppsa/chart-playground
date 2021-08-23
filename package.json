@@ -49,6 +49,9 @@
     ]
   },
   "devDependencies": {
+    "@visx/responsive": "^2.1.0",
+    "@visx/text": "^2.1.0",
+    "@visx/tooltip": "^2.1.0",
     "gh-pages": "^3.2.3"
   },
   "homepage": "http://al-ppsa.github.io/chart-playground"

@@ -1,8 +1,10 @@
 import React from 'react';
 
-import Pie from '@visx/shape/lib/shapes/Pie';
-import { letterFrequency } from '@visx/mock-data';
+import Pie, { PieArcDatum } from '@visx/shape/lib/shapes/Pie';
+import { letterFrequency, exoplanets } from '@visx/mock-data';
 import { Group } from '@visx/group';
+import {Text} from '@visx/text';
+import { followAngle } from './utils';
 
 export interface VisxProps {
     width: number;
@@ -10,12 +12,12 @@ export interface VisxProps {
     radius: number;
     thickness: number;
 }
+
+
 export const VisxTest = (props: VisxProps) => {
     const { width, height, radius, thickness } = props;
     const [showLabels, setShowLabels] = React.useState<boolean>(false);
 
-    // when rendering colors this way (vs, say, a static string "rgb(0, 0, 255)") I can't seem to get 
-    // the full value. Everythign is very dull...unsure if there's some svg quirk I don't know about
     const getColor = (data: {letter: string, frequency: number}) => {
         const freqMod = data.frequency * 10;
         const r = Math.random() * 255;
@@ -24,31 +26,80 @@ export const VisxTest = (props: VisxProps) => {
         return `rgb(${r}, ${g}, ${b})`
     }
 
-    const getCentroid = (data: {letter: string, frequency: number}, coords: [x: number, y: number]) => {
-        const [x, y] = coords;
-        const [cX, cY] = [0, 0];
-        const [diffX, diffY] = [x-cX, y-cY];
-        const scale = 0.4;
-        const [adjX, adjY] = [x + diffX*scale, y + diffY*scale];
+    const getCentroid = (data: {letter: string, frequency: number}, coords: [x: number, y: number], arc: PieArcDatum<any>) => {
+        const [centroidX, centroidY] = coords;
+        const angle = (arc.startAngle + arc.endAngle) / 2;
+        const baseStemLength = 15;
+        const stemLengthMod = getStemLengthMod(angle);
+        const stemLength = baseStemLength * stemLengthMod; 
+        const separation = 2;
+        const stemLabelOffset = 2;
+        const stemLeft = centroidX < 0;
+        // considered trying to do a transform on this, but the length is too finicky 
+        const forearmLength = 80;
+        const [outerX, outerY] = followAngle(coords, (thickness / 2) + separation, angle);
+        const [elbowX, elbowY] = followAngle([outerX, outerY], stemLength, angle);
+        const [adjX, adjY] = [stemLeft ? elbowX - forearmLength : elbowX + forearmLength, elbowY]
 
         return (
-            <g>
-                <text 
+            <>
+                <Text 
                     x={adjX} 
-                    y={adjY} 
-                    textAnchor="middle"
+                    y={elbowY - stemLabelOffset} 
+                    fill={'white'}
+                    textAnchor={`${stemLeft ? 'start' : 'end'}`}
+                    verticalAnchor={'end'}
+                    fontSize="14px"
+                >
+                        {`letter: ${data.letter}`}
+                </Text>
+                <Text 
+                    x={adjX} 
+                    y={elbowY + stemLabelOffset} 
+                    fill={'white'}
+                    textAnchor={`${stemLeft ? 'start' : 'end'}`}
+                    verticalAnchor={'start'}
+                    fontSize="14px"
+                >
+                        {/*`${data.frequency}`*/}
+                        {arc.startAngle.toFixed(4)}
+                </Text>
+                <line
+                    x1={elbowX}
+                    y1={elbowY}
+                    x2={outerX}
+                    y2={outerY}
+                    stroke="white"
+                />
+                <line
+                    x1={elbowX}
+                    y1={elbowY}
+                    x2={adjX}
+                    y2={adjY}
+                    stroke="white"
+                />
+                <Text
+                    x={centroidX}
+                    y={centroidY}
+                    textAnchor={'middle'}
+                    verticalAnchor={'middle'}
+                    fontSize={'1rem'}
+                    fill='white'
                 >
                     {data.letter}
-                </text>
-                <line
-                    x1={x}
-                    x2={adjX}
-                    y1={y}
-                    y2={adjY}
-                    stroke="black"
-                />
-            </g>
+                </Text>
+            </>
         )
+    }
+
+    const getLabelHead = () => {
+
+
+    }
+
+    const getArcMiddle = <T,>(arc: PieArcDatum<T>) => {
+
+
     }
 
     return (
@@ -57,7 +108,6 @@ export const VisxTest = (props: VisxProps) => {
             <p>minimal example of donut chart in visx </p>
             <svg height={height} width={width}>
                 <Group>
-                    <text x={width/2} y={height/2} fill="white" textAnchor="middle">Donut Chart</text>
                     <Pie
                         top={height / 2}
                         left={width / 2}
@@ -65,13 +115,20 @@ export const VisxTest = (props: VisxProps) => {
                         outerRadius={radius}
                         innerRadius={radius - thickness}
                         pieValue={l => l.frequency}
-                        //endAngle={Math.PI * 3 / 2}
                         fill={s => getColor(s.data)}
-                        centroid={showLabels ? (xy, arc) => getCentroid(arc.data, xy) : undefined}
+                        centroid={showLabels ? (xy, arc) => getCentroid(arc.data, xy, arc) : undefined}
+                        pieSort={(a, b) => a.letter.localeCompare(b.letter)}
                     />
                 </Group>
             </svg>
             <button onClick={() => setShowLabels(!showLabels)}>Toggle Labels</button>
         </>
     )
+}
+
+
+const getStemLengthMod = (angle: number) => {
+    const normalized = Math.abs(Math.sin(angle));
+    const translated = normalized - (Math.PI / 2);
+    return 1.3 * Math.pow(translated, 4);
 }
