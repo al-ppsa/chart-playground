@@ -53,3 +53,7 @@ export function arcAngle <T,>(arc: PieArcDatum<T>) {
 export function radiansToDegrees(radians: number) {
     return (radians % (Math.PI * 2)) * (180 / Math.PI);
 }
+
+export function degreesToRadians(degrees: number) {
+    return (degrees % 360 ) * (Math.PI / 180);
+}

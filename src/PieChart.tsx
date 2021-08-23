@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { Children } from 'react';
 import { Group } from '@visx/group';
 import { Pie } from '@visx/shape'; 
-import { followAngle, generateColorScale, Coords, arcAngle } from './utils';
+import { followAngle, generateColorScale, Coords, arcAngle, radiansToDegrees, degreesToRadians } from './utils';
 import { PieArcDatum } from '@visx/shape/lib/shapes/Pie';
 import {Text} from '@visx/text'
 import {ScaleSVG} from '@visx/responsive';
@@ -17,9 +17,8 @@ export interface PieChartProps<T> {
     labelThreshold?: number;
     getValue: (datum: T) => number;
     getIdentifier: (datum: T) => string;
-    getArcLabel?: (datum: T) => string; // | React.Node
-    getStemLabel?: (datum: T) => [primary: string, secondary?: string]; // | React.Node
-    getArcColor?: ((datum: T) => string);
+    renderLabels?: (datum: T, arcCoords: Coords, arcAngle: number) => JSX.Element;
+    getColor?: ((datum: T) => string);
     sortComparator?: (datum1: T, datum2: T) => number;
     // automatically hide labels where this returns true
     hideLabels?: (datum: T, radians: number) => boolean;
@@ -34,40 +33,25 @@ export const PieChart = <T,>(props: PieChartProps<T>) => {
         data, 
         getValue,
         getIdentifier,
-        getArcLabel,
-        getStemLabel,
-        getArcColor,
+        renderLabels,
+        getColor,
         sortComparator,
         hideLabels
     } = props;
 
-    const getColor = React.useCallback(generateColorScale(data.map(getIdentifier)),
+    const getArcColor = React.useCallback(generateColorScale(data.map(getIdentifier)),
         [data, getIdentifier]);
 
-    const getArcFillColor = (arc: PieArcDatum<T>): string => {
-        if (getArcColor) {
-            return getArcColor(arc.data);
+    const fill = (arc: PieArcDatum<T>): string => {
+        if (getColor) {
+            return getColor(arc.data);
         }
 
-        return  getColor(getIdentifier(arc.data));
+        return  getArcColor(getIdentifier(arc.data));
     }
 
-    const renderArcLabel = (coords: Coords, label: string) => {
-        return (
-            <Text
-                x={coords[0]}
-                y={coords[1]}
-                textAnchor={'middle'}
-                verticalAnchor={'middle'}
-                fontSize={'1rem'}
-                fill='white'>
-                {'test'}
-            </Text>
-        );
-    }
-
-    const renderLabels = (coords: Coords, arc: PieArcDatum<T>) => {
-        if (!getStemLabel && !getArcLabel) {
+    const centroid = (coords: Coords, arc: PieArcDatum<T>) => {
+        if (!renderLabels) {
             return null;
         }
 
@@ -75,22 +59,7 @@ export const PieChart = <T,>(props: PieChartProps<T>) => {
             return null;
         }
 
-        // TODO magic numbers
-        const stemOffset = ((outerRadius - (innerRadius || 0)) / 2) + 2;
-        return (
-            <g>
-                {getArcLabel &&
-                    renderArcLabel(coords, getArcLabel(arc.data))}
-                {getStemLabel &&
-                    <StemLabel 
-                        arc={arc}
-                        arcCoords={coords}
-                        labels={getStemLabel(arc.data)}
-                        stemOffset={stemOffset}
-                    />
-                }
-            </g>
-        )
+       return renderLabels(arc.data, coords, arcAngle(arc));
     }
 
     return (
@@ -107,9 +76,10 @@ export const PieChart = <T,>(props: PieChartProps<T>) => {
                         pieValue={getValue}
                         outerRadius={outerRadius}
                         innerRadius={innerRadius}
-                        fill={getArcFillColor}
-                        centroid={renderLabels}
+                        fill={fill}
+                        centroid={centroid}
                         pieSort={sortComparator}
+                        padAngle={degreesToRadians(0.5)}
                     />
                 </Group>
             </ScaleSVG>
@@ -120,95 +90,38 @@ export const PieChart = <T,>(props: PieChartProps<T>) => {
 export default PieChart;
 
 // helper component for stem labels
-interface StemLabelProps<T> {
-    arc: PieArcDatum<T>;
-    arcCoords: Coords;
-    labels: [primary: string, secondary?: string];
+interface RadialStemProps {
+    angle: number;
+    coords: Coords;
     stemOffset: number;
-    labelLength?: number;
-    labelPadding?: number;
     baseStemLength?: number;
-    primaryColor?: string;
-    secondaryColor?: string;
-    stemColor?: string;
+    children: (position: Coords) => JSX.Element;
 }
 
-// TODO extract head into own component for reuse/flexibility
-// convert primary/secondary/colors to HEAD component/labbelrenderer function
-const StemLabel = <T,>(props: StemLabelProps<T>) => {
+const RadialStem = (props: RadialStemProps) => {
     const {
-        arc, 
-        arcCoords, 
-        labels: [primary, secondary], 
+        angle, 
+        coords, 
         stemOffset,
-        labelLength,
-        labelPadding,
         baseStemLength,
-        primaryColor,
-        secondaryColor,
-        stemColor
+        children
     } = {
         ...{
-            labelLength: 60,
-            labelPadding: 2,
-            baseStemLength: 15
+            baseStemLength: 30
         },
         ...props
     };
 
-    const renderHead = (start: Coords, arc: PieArcDatum<T>, primary: string, secondary?: string) => {
-        const [x1, y1] = start;
-        const leftFacing = arcAngle(arc) >= Math.PI;
-        const [x2, y2] = [x1 + (labelLength * (leftFacing ? -1 : 1)), y1];
-        const anchorScheme = leftFacing ? 'start' : 'end';
-
-        return (
-            <g>
-                <Text
-                    x={x2}
-                    y={y2 - labelPadding}
-                    fill={'white'}
-                    textAnchor={anchorScheme}
-                    verticalAnchor={'end'}
-                    fontSize="14px"
-                >
-                    {primary}
-                </Text>
-                <line
-                    x1={x1}
-                    y1={y1}
-                    x2={x2}
-                    y2={y2}
-                    stroke="white"
-                />
-                {secondary &&
-                    <Text
-                        x={x2}
-                        y={y2 + labelPadding}
-                        fill={'white'}
-                        textAnchor={anchorScheme}
-                        verticalAnchor={'start'}
-                        fontSize="14px"
-                    >
-                        {secondary}
-                    </Text>
-                }
-            </g>
-        )
-    }
-
     const scaleStemLength = (length: number, angle: number) => {
         const normalized = Math.abs(Math.sin(angle));
         const translated = normalized - (Math.PI / 2);
-        const scalar =  2.1 * Math.pow(translated, 2);
+        const scalar =  Math.pow(translated, 2);
         return scalar * length;
     }
      
-    const stemAngle = arcAngle(arc);
-    const stemLength = scaleStemLength(baseStemLength, stemAngle);
-
-    const [stemStartX, stemStartY] = followAngle(arcCoords, stemOffset, stemAngle);
-    const [elbowX, elbowY] = followAngle([stemStartX, stemStartY], stemLength, stemAngle);
+    const stemLength = scaleStemLength(baseStemLength, angle);
+    const [stemStartX, stemStartY] = followAngle(coords, stemOffset, angle);
+    const [stemEndX, stemEndY] = followAngle([stemStartX, stemStartY], stemLength, angle);
     
     return (
         <g>
@@ -216,12 +129,90 @@ const StemLabel = <T,>(props: StemLabelProps<T>) => {
             <line
                 x1={stemStartX}
                 y1={stemStartY}
-                x2={elbowX}
-                y2={elbowY}
+                x2={stemEndX}
+                y2={stemEndY}
                 stroke='white'
             />
             {/* stem head */}
-            {renderHead([elbowX, elbowY], arc, primary, secondary)}
+            {children([stemEndX, stemEndY])}
         </g>
     )
+}
+
+interface StackedLabelProps {
+    coords: Coords;
+    primary: string;
+    secondary?: string;
+    leftFacing?: boolean;
+    labelLength?: number;
+    labelPadding?: number;
+}
+
+const StackedLabel = <T,>(props: StackedLabelProps) => {
+    const { primary, secondary, coords, leftFacing, labelLength, labelPadding } = {
+        ...{
+            labelLength: 60,
+            labelPadding: 2,
+        },
+        ...props
+    };
+
+    const [x1, y1] = coords;
+    const [x2, y2] = [x1 + (labelLength * (leftFacing ? -1 : 1)), y1];
+    const anchorScheme = leftFacing ? 'start' : 'end';
+
+    return (
+        <g>
+            <Text
+                x={x2}
+                y={y2 - (labelPadding || 0)}
+                fill={'white'}
+                textAnchor={anchorScheme}
+                verticalAnchor={'end'}
+                fontSize="1rem"
+            >
+                {primary}
+            </Text>
+            <line
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                stroke="white"
+            />
+            {secondary &&
+                <Text
+                    x={x2}
+                    y={y2 + labelPadding}
+                    fill={'white'}
+                    textAnchor={anchorScheme}
+                    verticalAnchor={'start'}
+                    fontSize="1rem"
+                >
+                    {secondary}
+                </Text>
+            }
+        </g>
+    )
+}
+
+interface StackedStemLabelProps extends Omit<RadialStemProps, 'children'>, Omit<StackedLabelProps, 'leftFacing' | 'coords'> { }
+
+export const StackedStemLabel = (props: StackedStemLabelProps) => {
+    const { angle } = props;
+    const leftFacing = angle >= Math.PI;
+
+    return (
+        <RadialStem
+            {...props}
+        >
+            {position =>
+                <StackedLabel
+                    {...props}
+                    leftFacing={leftFacing}
+                    coords={position}
+                />
+            }
+        </RadialStem>
+    );
 }

@@ -3,9 +3,11 @@ import React, { useState } from 'react';
 import { VisxTest } from './VisxTest';
 import { NivoTest } from './NivoTest';
 import {DonutChart} from './DonutChart';
+import {StackedStemLabel} from './PieChart';
 import {exoplanets} from '@visx/mock-data';
 import './App.css';
 import { pointAlongLine, radiansToDegrees } from './utils';
+import {Text} from '@visx/text';
 
 const width: number = 800;
 const height: number = 800;
@@ -19,7 +21,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <button onClick={() => setDisplayingVisx(!displayingVisx)}>toggle library</button>
-        <DonutChart 
+        <DonutChart
           key={toggle}
           height={height}
           width={width}
@@ -28,8 +30,29 @@ function App() {
           thickness={thickness}
           getValue={p => p.radius}
           getIdentifier={p => p.name}
-          getArcLabel={p => p.name}
-          getStemLabel={p => [p.name, p.radius?.toString()]}
+          renderLabels={(datum, coords, angle) => {
+            return (
+              <>
+                <Text
+                  x={coords[0]}
+                  y={coords[1]}
+                  textAnchor={'middle'}
+                  verticalAnchor={'middle'}
+                  fontSize={'1rem'}
+                  fill='white'>
+                  {datum.name}
+                </Text>
+                <StackedStemLabel 
+                  labelLength={100}
+                  angle={angle}
+                  coords={coords}
+                  stemOffset={thickness/ 2}
+                  primary={datum.name}
+                  secondary={datum.radius.toString()}
+                />
+              </>
+            )
+          }}
           sortComparator={(d1, d2) => {
             const r = Math.random();
             if (r < 0.5) {
@@ -41,12 +64,12 @@ function App() {
             return 0;
 
           }}
-          hideLabels={(d, rad) => radiansToDegrees(rad) < 8}
+          hideLabels={(d, rad) => radiansToDegrees(rad) < 5}
         />
         <button onClick={() => toggle ? setToggle(0) : setToggle(1)}>randomize</button>
-      </header>
+        </header>
     </div>
-  );
+    );
 }
 
 export default App;
