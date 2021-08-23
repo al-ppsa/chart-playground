@@ -23,8 +23,6 @@ function App() {
         <button onClick={() => setDisplayingVisx(!displayingVisx)}>toggle library</button>
         <DonutChart
           key={toggle}
-          height={height}
-          width={width}
           data={exoplanets.slice(0, 20)}
           outerRadius={radius}
           thickness={thickness}

@@ -9,8 +9,8 @@ import {ScaleSVG} from '@visx/responsive';
 import styles from './PieChart.module.css'
 
 export interface PieChartProps<T> {
-    height: number;
-    width: number;
+    viewBoxHeight?: number;
+    viewBoxWidth?: number;
     data: T[];
     outerRadius: number;
     innerRadius?: number;
@@ -26,8 +26,8 @@ export interface PieChartProps<T> {
 
 export const PieChart = <T,>(props: PieChartProps<T>) => {
     const {
-        height, 
-        width, 
+        viewBoxHeight, 
+        viewBoxWidth, 
         innerRadius,
         outerRadius, 
         data, 
@@ -37,7 +37,12 @@ export const PieChart = <T,>(props: PieChartProps<T>) => {
         getColor,
         sortComparator,
         hideLabels
-    } = props;
+    } = {
+        ...{
+            viewBoxHeight: 800,
+            viewBoxWidth: 800
+        },
+        ...props};
 
     const getArcColor = React.useCallback(generateColorScale(data.map(getIdentifier)),
         [data, getIdentifier]);
@@ -65,13 +70,13 @@ export const PieChart = <T,>(props: PieChartProps<T>) => {
     return (
         <div className={styles['container']}>
             <ScaleSVG 
-                height={height}
-                width={width}
+                height={viewBoxHeight}
+                width={viewBoxWidth}
             >
                 <Group>
                     <Pie
-                        top={height / 2}
-                        left={width / 2}
+                        top={viewBoxHeight / 2}
+                        left={viewBoxWidth / 2}
                         data={data}
                         pieValue={getValue}
                         outerRadius={outerRadius}
