@@ -1,4 +1,4 @@
-import React, { Children } from 'react';
+import React from 'react';
 import { Group } from '@visx/group';
 import { Pie } from '@visx/shape'; 
 import { generateColorScale, Coords, arcAngle, degreesToRadians } from './utils';
@@ -66,13 +66,13 @@ export const PieChart = <T,>(props: PieChartProps<T>) => {
        return renderLabels(arc.data, coords, arcAngle(arc));
     }
 
+    /* wrap in div with default min/max values? accept sizing props? let consumer wrap in their own container */
     return (
         <div className={styles['container']}>
             <ScaleSVG 
                 height={viewBoxHeight}
                 width={viewBoxWidth}
             >
-                <Group>
                     <Pie
                         top={viewBoxHeight / 2}
                         left={viewBoxWidth / 2}
@@ -85,7 +85,6 @@ export const PieChart = <T,>(props: PieChartProps<T>) => {
                         pieSort={sortComparator}
                         padAngle={degreesToRadians(0.5)}
                     />
-                </Group>
             </ScaleSVG>
         </div>
     );
