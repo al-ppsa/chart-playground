@@ -1,7 +1,5 @@
 import logo from './logo.svg';
 import React, { useState } from 'react';
-import { VisxTest } from './VisxTest';
-import { NivoTest } from './NivoTest';
 import {DonutChart} from './DonutChart';
 import {StackedStemLabel} from './stackedStemLabel';
 import {exoplanets} from '@visx/mock-data';
